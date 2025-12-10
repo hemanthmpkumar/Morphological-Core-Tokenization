@@ -1,0 +1,10 @@
+
+* C4 (Common Crawl) Dataset:
+    https://huggingface.co/datasets/allenai/c4
+
+* WMT14 (German-English) Dataset:
+    https://huggingface.co/datasets/wmt/wmt14
+    (Original Shared Task Reference: http://www.statmt.org/wmt14/translation-task.html)
+
+* arXiv Summarization Dataset:
+    https://huggingface.co/datasets/ccdv/arxiv-summarization
