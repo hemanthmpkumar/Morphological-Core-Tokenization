@@ -1,0 +1,115 @@
+TOKENIZATION EXAMPLES
+================================================================================
+
+
+Text: The morphological-core tokenization preserves word stems.
+--------------------------------------------------------------------------------
+
+BPE:
+  Tokens: ['[CLS]', 'the', 'morpho', 'logical', '-', 'core', 'token', 'ization', 'preserves', 'word', 'stems', '.', '[SEP]']
+  Token count: 13
+  Compression ratio: 4.38 chars/token
+
+WORDPIECE:
+  Tokens: ['the', 'mor', '##ph', '##ological', '-', 'core', 'to', '##ken', '##ization', 'preserve', '##s', 'word', 'stems', '.']
+  Token count: 14
+  Compression ratio: 4.07 chars/token
+
+SENTENCEPIECE:
+  Tokens: ['▁the', '▁morph', 'ological', '-', 'core', '▁token', 'ization', '▁preserves', '▁word', '▁stems', '.']
+  Token count: 11
+  Compression ratio: 5.18 chars/token
+
+BYTELEVEL:
+  Tokens: ['The', 'Ġmorph', 'ological', '-', 'core', 'Ġto', 'ken', 'ization', 'Ġpreserves', 'Ġword', 'Ġstems', '.']
+  Token count: 12
+  Compression ratio: 4.75 chars/token
+
+BYT5:
+  Tokens: ['byte_84', 'byte_104', 'byte_101', 'byte_32', 'byte_109', 'byte_111', 'byte_114', 'byte_112', 'byte_104', 'byte_111', 'byte_108', 'byte_111', 'byte_103', 'byte_105', 'byte_99']...
+  Token count: 57
+  Compression ratio: 1.00 chars/token
+
+Text: unnecessarily running through complex linguistic structures
+--------------------------------------------------------------------------------
+
+BPE:
+  Tokens: ['[CLS]', 'unnecessarily', 'running', 'through', 'complex', 'linguistic', 'structures', '[SEP]']
+  Token count: 8
+  Compression ratio: 7.38 chars/token
+
+WORDPIECE:
+  Tokens: ['unnecessarily', 'running', 'through', 'complex', 'linguistic', 'structures']
+  Token count: 6
+  Compression ratio: 9.83 chars/token
+
+SENTENCEPIECE:
+  Tokens: ['▁unnecessarily', '▁running', '▁through', '▁complex', '▁linguistic', '▁structures']
+  Token count: 6
+  Compression ratio: 9.83 chars/token
+
+BYTELEVEL:
+  Tokens: ['un', 'necess', 'arily', 'Ġrunning', 'Ġthrough', 'Ġcomplex', 'Ġlingu', 'istic', 'Ġstructures']
+  Token count: 9
+  Compression ratio: 6.56 chars/token
+
+BYT5:
+  Tokens: ['byte_117', 'byte_110', 'byte_110', 'byte_101', 'byte_99', 'byte_101', 'byte_115', 'byte_115', 'byte_97', 'byte_114', 'byte_105', 'byte_108', 'byte_121', 'byte_32', 'byte_114']...
+  Token count: 59
+  Compression ratio: 1.00 chars/token
+
+Text: Die Sprachverarbeitung erfordert präzise Tokenisierung.
+--------------------------------------------------------------------------------
+
+BPE:
+  Tokens: ['[CLS]', 'die', 'spr', 'ach', 'ver', 'ar', 'beit', 'ung', 'er', 'for', 'der', 't', 'pr', 'ä', 'z']...
+  Token count: 22
+  Compression ratio: 2.50 chars/token
+
+WORDPIECE:
+  Tokens: ['die', 'sprach', '##vera', '##r', '##beit', '##ung', 'erfordert', 'präzise', 'to', '##ken', '##isierung', '.']
+  Token count: 12
+  Compression ratio: 4.58 chars/token
+
+SENTENCEPIECE:
+  Tokens: ['▁die', '▁spra', 'ch', 'ver', 'ar', 'beit', 'ung', '▁er', 'ford', 'ert', '▁pr', 'ä', 'z', 'ise', '▁token']...
+  Token count: 19
+  Compression ratio: 2.89 chars/token
+
+BYTELEVEL:
+  Tokens: ['Die', 'ĠSp', 'ra', 'ch', 'ver', 'ar', 'beit', 'ung', 'Ġer', 'ford', 'ert', 'Ġpr', 'Ã¤', 'z', 'ise']...
+  Token count: 21
+  Compression ratio: 2.62 chars/token
+
+BYT5:
+  Tokens: ['byte_68', 'byte_105', 'byte_101', 'byte_32', 'byte_83', 'byte_112', 'byte_114', 'byte_97', 'byte_99', 'byte_104', 'byte_118', 'byte_101', 'byte_114', 'byte_97', 'byte_114']...
+  Token count: 56
+  Compression ratio: 1.00 chars/token
+
+Text: This is a simple test sentence for comparison.
+--------------------------------------------------------------------------------
+
+BPE:
+  Tokens: ['[CLS]', 'this', 'is', 'a', 'simple', 'test', 'sentence', 'for', 'comparison', '.', '[SEP]']
+  Token count: 11
+  Compression ratio: 4.18 chars/token
+
+WORDPIECE:
+  Tokens: ['this', 'is', 'a', 'simple', 'test', 'sentence', 'for', 'comparison', '.']
+  Token count: 9
+  Compression ratio: 5.11 chars/token
+
+SENTENCEPIECE:
+  Tokens: ['▁this', '▁is', '▁a', '▁simple', '▁test', '▁sentence', '▁for', '▁comparison', '.']
+  Token count: 9
+  Compression ratio: 5.11 chars/token
+
+BYTELEVEL:
+  Tokens: ['This', 'Ġis', 'Ġa', 'Ġsimple', 'Ġtest', 'Ġsentence', 'Ġfor', 'Ġcomparison', '.']
+  Token count: 9
+  Compression ratio: 5.11 chars/token
+
+BYT5:
+  Tokens: ['byte_84', 'byte_104', 'byte_105', 'byte_115', 'byte_32', 'byte_105', 'byte_115', 'byte_32', 'byte_97', 'byte_32', 'byte_115', 'byte_105', 'byte_109', 'byte_112', 'byte_108']...
+  Token count: 46
+  Compression ratio: 1.00 chars/token

@@ -1,0 +1,10 @@
+Task,Tokenizer,Avg BLEU,Avg Accuracy,Avg Tokens/Sample,Avg Chars/Token,Num Experiments
+machine_translation,BPE,28.422327700733124,--,31.105,4.087751180917718,1
+machine_translation,Byte-Level BPE,29.122327700733123,--,32.383,3.934558635954528,1
+machine_translation,WordPiece,28.222327700733125,--,31.554,4.032658669226175,1
+machine_translation,MCT,29.682862948138663,--,53.387,2.494543337616199,2
+Abstractive Summarization,BPE,--,--,1896.064,5.1949339517521675,1
+Abstractive Summarization,Byte-Level BPE,--,--,2035.063,4.845420410891003,1
+Abstractive Summarization,WordPiece,--,--,1902.449,5.177848205022645,1
+Abstractive Summarization,MCT,--,--,4299.713,2.3150498650918774,1
+morphological_awareness,MCT,--,0.8553559410325545,29.0,2.8131279593311254,1

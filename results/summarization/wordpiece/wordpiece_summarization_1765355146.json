@@ -1,0 +1,47 @@
+{
+  "experiment_id": "wordpiece_summarization_1765355146",
+  "config": {
+    "tokenizer_type": "wordpiece",
+    "task": "summarization",
+    "language": "en"
+  },
+  "tokenizer_vocab_size": 32000,
+  "metrics": {
+    "rouge_scores": {
+      "rouge-1": 0.3718637974803603,
+      "rouge-2": 0.20053552881033623,
+      "rouge-l": 0.30265359696838634
+    },
+    "inference_speed": 939.1863554806539
+  },
+  "tokenization_stats": {
+    "avg_tokens_per_sample": 1902.449,
+    "avg_chars_per_token": 5.177848205022645,
+    "max_sequence_length": 2977,
+    "unk_rate": 0.0,
+    "total_tokens": 0
+  },
+  "training_history": {
+    "train_loss": [
+      2.319713399228942,
+      1.9375146591845598,
+      1.9682356070820064,
+      1.8460897838524226,
+      1.410960909842635
+    ],
+    "val_loss": [
+      2.2125053776113335,
+      2.1616053690744117,
+      2.238349743711456,
+      1.7934694163147082,
+      1.6148986097190354
+    ],
+    "learning_rate": [
+      6e-06,
+      1.2e-05,
+      1.8e-05,
+      2.4e-05,
+      3e-05
+    ]
+  }
+}

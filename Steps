@@ -1,0 +1,90 @@
+# ==================== PROJECT SETUP ====================
+# Step 1: Create and activate virtual environment
+python -m venv mct_env
+
+# On macOS/Linux:
+source mct_env/bin/activate
+
+# On Windows:
+mct_env\Scripts\activate
+
+# Step 2: Install dependencies
+pip install -r requirements_minimal.txt
+
+# Step 3: Download NLTK data
+python -c "import nltk; nltk.download('wordnet'); nltk.download('omw-1.4')"
+
+# Step 4: Verify installation
+python verify_installation.py
+
+# ==================== DATA PREPARATION ====================
+# Step 5: Download datasets
+python download_datasets.py --dataset all --max-samples 10000
+
+# OR for testing with small datasets:
+python quick_download.py
+
+# Expected structure after download:
+# data/
+# ├── c4/
+# ├── wmt14/
+# ├── arxiv/
+# └── morphology/
+
+# Step 6: Create sample data (optional)
+python create_sample_data.py
+
+# ==================== MCT TOKENIZER IMPLEMENTATION ====================
+# Step 7: Test the MCT tokenizer implementation
+python test_tokenizer.py
+
+# ==================== DATA MODEL TESTING ====================
+# Step 8: Test the data model
+python test_datamodel.py
+
+
+# ==================== TOKENIZER TRAINING ====================
+# Step 9: Train MCT tokenizer on C4 dataset
+python train_tokenizer.py --dataset c4 --vocab-size 32000
+
+
+# ==================== BASELINE TOKENIZER TRAINING ====================
+# Step 10: Train baseline tokenizers for comparison
+python train_baselines.py
+
+
+# ==================== EXPERIMENT 1: MORPHOLOGICAL AWARENESS ====================
+# Step 11: Run morphological awareness experiment
+python run_experiment.py --task morphology --tokenizer mct
+
+
+# ==================== EXPERIMENT 2: MACHINE TRANSLATION ====================
+# Step 12: Run WMT14 translation experiment
+python run_experiment.py --task translation --tokenizer all
+
+# ==================== EXPERIMENT 3: SUMMARIZATION ====================
+# Step 13: Run arXiv summarization experiment
+python run_experiment.py --task summarization --tokenizer all
+
+# ==================== ABLATION STUDY ====================
+# Step 14: Run ablation studies
+python ablation_study.py
+
+
+# ==================== ANALYSIS AND VISUALIZATION ====================
+# Step 15: Analyze results and create visualizations
+python analyze_results.py
+
+
+# ==================== GENERATE FINAL REPORT ====================
+# Step 16: Generate final report
+python generate_report.py
+
+# ==================== CLEANUP (Optional) ====================
+# Step 17: Clean up intermediate files
+python cleanup.py --keep-results --keep-models
+
+# ==================== FULL PIPELINE SCRIPT ====================
+# Step 18: Run everything with a single script
+python run_full_pipeline.py --mode complete
+

@@ -1,0 +1,16 @@
+\begin{tabular}{llrrrrrrrr}
+\toprule
+tokenizer & task & vocab_size & accuracy & bleu_score & inference_speed & avg_tokens_per_sample & rouge-1 & rouge-2 & rouge-l \\
+\midrule
+bpe & machine_translation & 19810 & NaN & 28.422 & 1698.139 & 31.105 & NaN & NaN & NaN \\
+bytelevel & machine_translation & 21792 & NaN & 29.122 & 1698.139 & 32.383 & NaN & NaN & NaN \\
+wordpiece & machine_translation & 21360 & NaN & 28.222 & 1698.139 & 31.554 & NaN & NaN & NaN \\
+mct & machine_translation & 17152 & NaN & 29.683 & 1215.951 & 53.387 & NaN & NaN & NaN \\
+mct & machine_translation & 17152 & NaN & 29.683 & 1215.951 & 53.387 & NaN & NaN & NaN \\
+bpe & summarization & 32000 & NaN & NaN & 939.186 & 1896.064 & 0.372 & 0.201 & 0.303 \\
+bytelevel & summarization & 32000 & NaN & NaN & 939.186 & 2035.063 & 0.372 & 0.201 & 0.303 \\
+wordpiece & summarization & 32000 & NaN & NaN & 939.186 & 1902.449 & 0.372 & 0.201 & 0.303 \\
+mct & summarization & 18939 & NaN & NaN & 814.950 & 4299.713 & 0.416 & 0.214 & 0.360 \\
+mct & morphological_awareness & 89 & 0.855 & NaN & NaN & 29.000 & NaN & NaN & NaN \\
+\bottomrule
+\end{tabular}

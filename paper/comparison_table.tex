@@ -1,0 +1,19 @@
+\begin{table}[htbp]
+\caption{Performance comparison across tasks and tokenizers}
+\label{tab:comparison}
+\begin{tabular}{llllllr}
+\toprule
+Task & Tokenizer & Avg BLEU & Avg Accuracy & Avg Tokens/Sample & Avg Chars/Token & Num Experiments \\
+\midrule
+machine_translation & BPE & 28.422 & -- & 31.105 & 4.088 & 1 \\
+machine_translation & Byte-Level BPE & 29.122 & -- & 32.383 & 3.935 & 1 \\
+machine_translation & WordPiece & 28.222 & -- & 31.554 & 4.033 & 1 \\
+machine_translation & MCT & 29.683 & -- & 53.387 & 2.495 & 2 \\
+Abstractive Summarization & BPE & -- & -- & 1896.064 & 5.195 & 1 \\
+Abstractive Summarization & Byte-Level BPE & -- & -- & 2035.063 & 4.845 & 1 \\
+Abstractive Summarization & WordPiece & -- & -- & 1902.449 & 5.178 & 1 \\
+Abstractive Summarization & MCT & -- & -- & 4299.713 & 2.315 & 1 \\
+morphological_awareness & MCT & -- & 0.855 & 29.000 & 2.813 & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,43 @@
+{
+  "experiment_id": "mct_morphological_awareness_1765354593",
+  "config": {
+    "tokenizer_type": "mct",
+    "task": "morphological_awareness",
+    "language": "en"
+  },
+  "tokenizer_vocab_size": 89,
+  "metrics": {
+    "accuracy": 0.8553559410325545,
+    "f1_score": 0.8110730273322198
+  },
+  "tokenization_stats": {
+    "avg_tokens_per_sample": 29.0,
+    "avg_chars_per_token": 2.8131279593311254,
+    "max_sequence_length": 46,
+    "unk_rate": 0.46798029556650245,
+    "total_tokens": 0
+  },
+  "training_history": {
+    "train_loss": [
+      2.319713399228942,
+      1.9375146591845598,
+      1.9682356070820064,
+      1.8460897838524226,
+      1.410960909842635
+    ],
+    "val_loss": [
+      2.2125053776113335,
+      2.1616053690744117,
+      2.238349743711456,
+      1.7934694163147082,
+      1.6148986097190354
+    ],
+    "learning_rate": [
+      2e-05,
+      4e-05,
+      6e-05,
+      8e-05,
+      0.0001
+    ]
+  }
+}

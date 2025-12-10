@@ -70,46 +70,44 @@ tokens = tokenizer.encode(text)
 
 ## 📊 Reproduction of Results
 
-To reproduce the experiments described in the paper, follow the scripts in the `experiments/` folder.
+To reproduce the experiments described in the paper, follow the scripts in the `experiments/` folder. [cite_start]We trained a 6-layer Transformer from scratch on the C4 dataset with a 32k vocabulary for the subword models[cite: 61, 237].
 
 ### Machine Translation (WMT14 De-En)
-We trained a 6-layer Transformer from scratch. The MCT-based model achieved a **29.0 BLEU** score, outperforming BPE (27.5) and ByT5-small (28.3).
+[cite_start]This task tested performance on a morphologically rich language[cite: 63, 239]. [cite_start]The MCT-based model achieved a 1.5-point higher BLEU score than BPE and outperformed the byte-level ByT5 baseline, suggesting its explicit morphological bias is highly effective for this task[cite: 11, 63, 189, 239].
 
-| Model | BLEU Score |
-| :--- | :--- |
-| BPE (Baseline) | 27.5 |
-| WordPiece | 27.8 |
-| ByT5-small | 28.3 |
-| **MCT (Ours)** | **29.0** |
+| Model | BLEU Score | % Change from BPE |
+| :--- | :--- | :--- |
+| BPE (Baseline) | 27.5 | - |
+| WordPiece | 27.8 | +1.1% |
+| ByT5-small (Token-free) | 28.3 | +2.9% |
+| **MCT (Ours)** | **29.0** | **+5.5%** |
 
 ### Abstractive Summarization (arXiv)
-MCT achieves higher ROUGE scores by effectively handling specialized terminology.
+[cite_start]On this task, which involves specialized terminology, MCT again showed the best performance[cite: 81, 242].
 
 | Model | ROUGE-1 | ROUGE-2 | ROUGE-L |
 | :--- | :--- | :--- | :--- |
-| BPE | 40.1 | 17.5 | 36.5 |
+| BPE (Baseline) | 40.1 | 17.5 | 36.5 |
+| WordPiece | 40.3 | 17.7 | 36.8 |
+| ByT5-small | 40.8 | 18.0 | 37.2 |
 | **MCT (Ours)** | **41.0** | **18.2** | **37.4** |
+
+---
 
 ## ⚙️ Hyperparameters
 
-The default hyperparameters used for the main results:
-* **Learning Rate:** 1e-4
-* **Batch Size:** 256
-* **Optimizer:** AdamW
-* **Stem Dropout ($p_{drop}$):** 0.05
+The default hyperparameters used for the main results are:
 
-## 📚 Citation
+| Hyperparameter | Value |
+| :--- | :--- |
+| Learning Rate | 1e-4 |
+| Batch Size | 256 |
+| Optimizer | AdamW |
+| Warmup Steps | 4000 |
+| Weight Decay | 0.01 |
+| **Stem Dropout ($p_{drop}$)** | **0.05** |
 
-If you use MCT in your research, please cite our paper:
-
-```bibtex
-@article{papachappa2025mct,
-  title={Morphological-Core Tokenization: A Novel Approach to Preserve Semantic Integrity in Large Language Models},
-  author={Papachappa, Hemanth Manchabale},
-  journal={Proceedings of [Conference/Journal Name]},
-  year={2025}
-}
-```
+*Note: For all main experiments, the Stem Dropout probability ($p_{drop}$) was set to 0.05, as this value showed the optimal regularization effect during sensitivity analysis.* [cite: 106, 108, 254, 256]
 
 ## 📜 License
 

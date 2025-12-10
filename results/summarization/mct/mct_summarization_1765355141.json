@@ -1,0 +1,47 @@
+{
+  "experiment_id": "mct_summarization_1765355141",
+  "config": {
+    "tokenizer_type": "mct",
+    "task": "summarization",
+    "language": "en"
+  },
+  "tokenizer_vocab_size": 18939,
+  "metrics": {
+    "rouge_scores": {
+      "rouge-1": 0.4162768738061978,
+      "rouge-2": 0.21417044672332175,
+      "rouge-l": 0.35971459595195454
+    },
+    "inference_speed": 814.9502183154594
+  },
+  "tokenization_stats": {
+    "avg_tokens_per_sample": 4299.713,
+    "avg_chars_per_token": 2.3150498650918774,
+    "max_sequence_length": 8058,
+    "unk_rate": 0.1778362881429528,
+    "total_tokens": 0
+  },
+  "training_history": {
+    "train_loss": [
+      2.319713399228942,
+      1.9375146591845598,
+      1.9682356070820064,
+      1.8460897838524226,
+      1.410960909842635
+    ],
+    "val_loss": [
+      2.2125053776113335,
+      2.1616053690744117,
+      2.238349743711456,
+      1.7934694163147082,
+      1.6148986097190354
+    ],
+    "learning_rate": [
+      6e-06,
+      1.2e-05,
+      1.8e-05,
+      2.4e-05,
+      3e-05
+    ]
+  }
+}
