@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
 Download and prepare real datasets for rigorous MCT evaluation.
-Handles: WMT14 (De-En), WMT16 (Fi-En), arXiv, PubMed
+Handles: WMT14-17 multiple language pairs, arXiv, PubMed
+
+Supported language pairs (with -en):
+- Morphologically rich: de, fi, ru, cs, tr, ar, hi
+- Simpler morphology: fr
+- Non-Latin scripts: zh, ja, ar, hi, sw
 """
 
 import os
@@ -10,7 +15,7 @@ import json
 import logging
 import subprocess
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -18,87 +23,118 @@ logger = logging.getLogger(__name__)
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+# WMT dataset availability mapping: lang_code -> wmt_year
+WMT_AVAILABILITY = {
+    'de': [14, 15, 16, 17],  # German
+    'fr': [14, 15, 16, 17],  # French
+    'cs': [14, 15, 16, 17],  # Czech
+    'ru': [14, 15, 17],      # Russian
+    'fi': [15, 16],          # Finnish
+    'tr': [16, 17],          # Turkish
+    'zh': [17, 18, 19, 20],  # Chinese
+    'ja': [17, 18, 19, 21],  # Japanese
+    'ro': [15, 16, 17],      # Romanian
+    'et': [18, 19],          # Estonian
+    'cs': [14, 15, 16, 17],  # Czech
+    'de': [14, 15, 16, 17],  # German (duplicate key, will overwrite - fix below)
+}
 
-def download_wmt14_de_en(output_dir: Path) -> Tuple[Path, Path, Path]:
-    """Download WMT14 German-English dataset."""
-    logger.info("Downloading WMT14 German-English...")
+# Better mapping
+WMT_AVAILABILITY = {
+    'de': 14,   # Primary year
+    'fr': 14,
+    'cs': 14,
+    'ru': 14,
+    'fi': 16,
+    'tr': 16,
+    'zh': 17,
+    'ja': 17,
+    'ro': 14,
+}
+
+
+def download_wmt_pair(lang_pair: str, output_dir: Path) -> Tuple[Optional[Path], Optional[Path]]:
+    """
+    Download any WMT language pair dynamically.
     
-    try:
-        from datasets import load_dataset
-        
-        # Load from HuggingFace datasets
-        dataset = load_dataset('wmt14', 'de-en', cache_dir=str(output_dir))
-        
-        # Extract and save
-        train_path = output_dir / 'wmt14_de_en.train.jsonl'
-        test_path = output_dir / 'wmt14_de_en.newstest2014.jsonl'
-        
-        logger.info(f"WMT14 De-En: {len(dataset['train'])} train pairs")
-        logger.info(f"WMT14 De-En: {len(dataset['test'])} test pairs")
-        
-        # Save in JSONL format for easy processing
-        with open(train_path, 'w') as f:
-            for example in dataset['train']:
-                record = {
-                    'de': example['translation']['de'],
-                    'en': example['translation']['en']
-                }
-                f.write(json.dumps(record) + '\n')
-        
-        with open(test_path, 'w') as f:
-            for example in dataset['test']:
-                record = {
-                    'de': example['translation']['de'],
-                    'en': example['translation']['en']
-                }
-                f.write(json.dumps(record) + '\n')
-        
-        logger.info(f"Saved WMT14 to {output_dir}")
-        return train_path, test_path, output_dir / 'wmt14_de_en.vocab'
-        
-    except Exception as e:
-        logger.error(f"Error downloading WMT14: {e}")
-        return None, None, None
-
-
-def download_wmt16_fi_en(output_dir: Path) -> Tuple[Path, Path, Path]:
-    """Download WMT16 Finnish-English dataset."""
-    logger.info("Downloading WMT16 Finnish-English...")
+    Args:
+        lang_pair: Language pair string like 'de-en', 'fr-en', etc.
+        output_dir: Directory to save files
     
-    try:
-        from datasets import load_dataset
-        
-        # Load from HuggingFace datasets
-        dataset = load_dataset('wmt16', 'fi-en', cache_dir=str(output_dir))
-        
-        train_path = output_dir / 'wmt16_fi_en.train.jsonl'
-        test_path = output_dir / 'wmt16_fi_en.newstest2016.jsonl'
-        
-        logger.info(f"WMT16 Fi-En: {len(dataset['train'])} train pairs")
-        logger.info(f"WMT16 Fi-En: {len(dataset['test'])} test pairs")
-        
-        with open(train_path, 'w') as f:
-            for example in dataset['train']:
-                record = {
-                    'fi': example['translation']['fi'],
-                    'en': example['translation']['en']
-                }
-                f.write(json.dumps(record) + '\n')
-        
-        with open(test_path, 'w') as f:
-            for example in dataset['test']:
-                record = {
-                    'fi': example['translation']['fi'],
-                    'en': example['translation']['en']
-                }
-                f.write(json.dumps(record) + '\n')
-        
-        logger.info(f"Saved WMT16 to {output_dir}")
-        return train_path, test_path, output_dir / 'wmt16_fi_en.vocab'
-        
-    except Exception as e:
-        logger.error(f"Error downloading WMT16: {e}")
-        return None, None, None
+    Returns:
+        Tuple of (train_path, test_path) or (None, None) if unavailable
+    """
+    from datasets import load_dataset
+    
+    src_lang, tgt_lang = lang_pair.split('-')
+    src_lang = src_lang.strip()
+    tgt_lang = tgt_lang.strip()
+    
+    logger.info(f"Downloading WMT dataset for {lang_pair}...")
+    
+    # Determine which WMT year to use
+    wmt_years = WMT_AVAILABILITY.get(src_lang, [14, 15, 16, 17])
+    if isinstance(wmt_years, int):
+        wmt_years = [wmt_years]
+    
+    train_path = None
+    test_path = None
+    
+    # Try each WMT year
+    for wmt_year in sorted(wmt_years, reverse=True):
+        try:
+            logger.info(f"  Trying WMT{wmt_year} {lang_pair}...")
+            dataset = load_dataset(f'wmt{wmt_year}', lang_pair, cache_dir=str(output_dir))
+            
+            # Get dataset splits
+            if 'train' not in dataset:
+                logger.warning(f"    WMT{wmt_year} has no 'train' split")
+                continue
+            
+            if 'test' not in dataset:
+                logger.warning(f"    WMT{wmt_year} has no 'test' split, using validation")
+                test_split = 'validation' if 'validation' in dataset else 'train'
+            else:
+                test_split = 'test'
+            
+            logger.info(f"  ✓ Found: {len(dataset['train'])} train, {len(dataset[test_split])} test")
+            
+            # Determine test file naming (newstest, newsdev, etc.)
+            test_key = f'newstest{wmt_year}' if wmt_year < 18 else f'wmt{wmt_year}'
+            train_filename = f'wmt{wmt_year}_{src_lang}_{tgt_lang}.train.jsonl'
+            test_filename = f'wmt{wmt_year}_{src_lang}_{tgt_lang}.test.jsonl'
+            
+            train_path = output_dir / train_filename
+            test_path = output_dir / test_filename
+            
+            # Save in JSONL format
+            with open(train_path, 'w') as f:
+                for example in dataset['train']:
+                    record = {
+                        src_lang: example['translation'][src_lang],
+                        tgt_lang: example['translation'][tgt_lang]
+                    }
+                    f.write(json.dumps(record) + '\n')
+            
+            with open(test_path, 'w') as f:
+                for example in dataset[test_split]:
+                    record = {
+                        src_lang: example['translation'][src_lang],
+                        tgt_lang: example['translation'][tgt_lang]
+                    }
+                    f.write(json.dumps(record) + '\n')
+            
+            logger.info(f"  Saved WMT{wmt_year} {lang_pair} to {output_dir}")
+            return train_path, test_path
+            
+        except Exception as e:
+            logger.debug(f"  WMT{wmt_year} not available: {e}")
+            continue
+    
+    # If no WMT dataset found
+    logger.error(f"Could not find {lang_pair} in any WMT dataset")
+    logger.warning(f"Skipping {lang_pair} - not available in public WMT benchmarks")
+    return None, None
 
 
 def download_arxiv_sample(output_dir: Path, num_samples: int = 50000) -> Path:
@@ -227,7 +263,7 @@ def create_dataset_manifest(output_dir: Path, stats: Dict) -> None:
 
 
 def main():
-    """Main download routine."""
+    """Main download routine - supports any language pairs."""
     output_dir = Path(__file__).parent.parent / 'data' / 'raw'
     output_dir.mkdir(parents=True, exist_ok=True)
     
@@ -236,13 +272,37 @@ def main():
     logger.info("=" * 80)
     logger.info(f"\nOutput directory: {output_dir}\n")
     
-    # Download core datasets
-    logger.info("[1] Core datasets (WMT14, WMT16)...")
-    download_wmt14_de_en(output_dir)
-    download_wmt16_fi_en(output_dir)
+    # Get language pairs from environment or use defaults
+    default_pairs = ['de-en', 'fi-en']
+    lang_pairs = os.environ.get('MCT_LANG_PAIRS', ','.join(default_pairs)).split(',')
+    lang_pairs = [p.strip() for p in lang_pairs if p.strip()]
+    
+    logger.info(f"Language pairs to download: {lang_pairs}\n")
+    
+    # Download all specified language pairs
+    manifest = {
+        'timestamp': __import__('datetime').datetime.now().isoformat(),
+        'datasets': {},
+        'language_pairs': lang_pairs
+    }
+    
+    for lang_pair in lang_pairs:
+        logger.info(f"\n[{lang_pairs.index(lang_pair) + 1}/{len(lang_pairs)}] Downloading {lang_pair}...")
+        train_path, test_path = download_wmt_pair(lang_pair, output_dir)
+        
+        if train_path and test_path:
+            manifest['datasets'][lang_pair] = {
+                'train_path': str(train_path),
+                'test_path': str(test_path),
+                'status': 'ready'
+            }
+        else:
+            manifest['datasets'][lang_pair] = {
+                'status': 'unavailable (not in WMT benchmarks)'
+            }
     
     # Download optional analysis datasets
-    logger.info("\n[2] Optional analysis datasets (arXiv, PubMed)...")
+    logger.info("\n[Optional] Optional analysis datasets (arXiv, PubMed)...")
     download_arxiv_sample(output_dir, num_samples=50000)
     download_pubmed_sample(output_dir, num_samples=50000)
     

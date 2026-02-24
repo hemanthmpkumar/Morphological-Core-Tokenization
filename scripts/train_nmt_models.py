@@ -6,6 +6,7 @@ Uses PyTorch with MCT/BPE tokenizers on WMT14/WMT16 datasets.
 
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -424,13 +425,29 @@ def main():
     
     # Configurations to train - limit to small/medium for single T4 GPU
     model_sizes = ['small', 'medium']  # Skip large (needs 2 GPUs or attention optimization)
-    tokenizers = ['BPE_32K', 'MCT_Full', 'MCT_NoDrop', 'MCT_NoBoundary', 'MCT_NoMorphology']
-    lang_pairs = ['de-en', 'fi-en']
+    
+    # Default tokenizers - can be overridden by env MCT_TOKENIZERS
+    default_tokenizers = ['BPE_32K', 'MCT_Full', 'MCT_NoDrop', 'MCT_NoBoundary', 'MCT_NoMorphology']
+    tokenizers = os.environ.get('MCT_TOKENIZERS', ','.join(default_tokenizers)).split(',')
+    tokenizers = [t.strip() for t in tokenizers]
+    
+    # Default language pairs - can be overridden by env MCT_LANG_PAIRS
+    # Supported: de-en, fi-en, fr-en, ru-en, cs-en, tr-en, zh-en, ja-en, ar-en, hi-en, sw-en
+    default_lang_pairs = ['de-en', 'fi-en']
+    lang_pairs = os.environ.get('MCT_LANG_PAIRS', ','.join(default_lang_pairs)).split(',')
+    lang_pairs = [p.strip() for p in lang_pairs]
     
     all_results = []
     
     # Training loop
     total_configs = len(model_sizes) * len(tokenizers) * len(lang_pairs)
+    logger.info(f"⏱️  Total configurations: {total_configs}")
+    logger.info(f"   Model sizes: {model_sizes}")
+    logger.info(f"   Tokenizers: {tokenizers}")
+    logger.info(f"   Language pairs: {lang_pairs}")
+    if total_configs > 20:
+        hours_estimate = max(2, total_configs / 10)  # ~10 configs/hour on T4
+        logger.info(f"   ⚠️  Estimated duration on single T4: ~{hours_estimate:.1f}-{hours_estimate*1.5:.1f} hours")
     current = 0
     
     for model_size in model_sizes:
