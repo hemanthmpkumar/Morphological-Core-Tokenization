@@ -1,0 +1,18 @@
+model_type: "mct_transformer"
+model_name: "mct-medium-350m"
+hidden_size: 1024
+num_hidden_layers: 24
+num_attention_heads: 16
+intermediate_size: 4096
+max_position_embeddings: 512
+vocab_size: 64000
+
+training:
+  learning_rate: 3.0e-4
+  weight_decay: 0.01
+  adam_beta1: 0.9
+  adam_beta2: 0.98
+  warmup_steps: 4000
+  max_steps: 500000
+  per_device_train_batch_size: 32
+  gradient_accumulation_steps: 8

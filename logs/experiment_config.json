@@ -1,0 +1,200 @@
+{
+  "experiment_name": "MCT_Real_Experiments_Q1_2026",
+  "philosophy": "Theory-driven science over metric chasing",
+  "timestamp": "2026-01-10T01:05:49.720935",
+  "datasets": {
+    "wmt14_de_en": {
+      "name": "WMT14 German-English",
+      "train_pairs": 700000,
+      "test_set": "newstest2014",
+      "language_pair": "de-en",
+      "morphology": "high",
+      "importance": "primary"
+    },
+    "wmt16_fi_en": {
+      "name": "WMT16 Finnish-English",
+      "train_pairs": 2200000,
+      "test_set": "newstest2016",
+      "language_pair": "fi-en",
+      "morphology": "very_high",
+      "importance": "secondary"
+    },
+    "arxiv_sample": {
+      "name": "arXiv abstracts (technical domain)",
+      "num_documents": 50000,
+      "purpose": "domain adaptation analysis",
+      "morphology": "medium",
+      "importance": "analysis"
+    },
+    "pubmed_sample": {
+      "name": "PubMed abstracts (biomedical domain)",
+      "num_documents": 50000,
+      "purpose": "domain adaptation analysis",
+      "morphology": "medium",
+      "importance": "analysis"
+    }
+  },
+  "tokenization_variants": [
+    {
+      "name": "BPE_32K",
+      "type": "baseline",
+      "vocab_size": 32000,
+      "description": "Standard BPE baseline"
+    },
+    {
+      "name": "WordPiece_32K",
+      "type": "baseline",
+      "vocab_size": 32000,
+      "description": "WordPiece baseline from HuggingFace"
+    },
+    {
+      "name": "MCT_Full",
+      "type": "proposed",
+      "vocab_size": 32000,
+      "morpheme_dropout": 0.05,
+      "boundary_constraints": true,
+      "morphological_analysis": true,
+      "description": "Full MCT with all components"
+    },
+    {
+      "name": "MCT_NoDrop",
+      "type": "ablation",
+      "vocab_size": 32000,
+      "morpheme_dropout": 0.0,
+      "boundary_constraints": true,
+      "morphological_analysis": true,
+      "description": "Ablation: no stem dropout"
+    },
+    {
+      "name": "MCT_NoBoundary",
+      "type": "ablation",
+      "vocab_size": 32000,
+      "morpheme_dropout": 0.05,
+      "boundary_constraints": false,
+      "morphological_analysis": true,
+      "description": "Ablation: no boundary constraints"
+    },
+    {
+      "name": "MCT_NoMorphology",
+      "type": "ablation",
+      "vocab_size": 32000,
+      "morpheme_dropout": 0.05,
+      "boundary_constraints": true,
+      "morphological_analysis": false,
+      "description": "Ablation: no morphological analysis (pure BPE + boundaries)"
+    }
+  ],
+  "evaluation_metrics": {
+    "translation": {
+      "primary": [
+        "BLEU",
+        "ChrF"
+      ],
+      "secondary": [
+        "TER",
+        "METEOR"
+      ],
+      "custom": [
+        "OOV_rate",
+        "segmentation_quality",
+        "morpheme_hit_rate"
+      ]
+    },
+    "tokenization": {
+      "vocab_coverage": "% of training vocab in 32K tokens",
+      "oov_rate": "% of test tokens not in vocab",
+      "subword_length": "average subword length",
+      "morpheme_alignment": "% of morpheme boundaries correctly preserved",
+      "stem_dropout_impact": "% of words affected by dropout regularization"
+    }
+  },
+  "experimental_design": {
+    "runs_per_tokenizer": 3,
+    "train_seed": [
+      42,
+      123,
+      456
+    ],
+    "test_set_size": 3000,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "epochs": 3,
+    "warmup_steps": 4000,
+    "statistical_testing": "paired t-test with p<0.05",
+    "model_size_variants": [
+      "small",
+      "medium",
+      "large"
+    ],
+    "size_notes": "small=~125M, medium=~350M, large=~1B (approx params)"
+  },
+  "analysis_plan": {
+    "morphological_breakdown": {
+      "by_inflection_type": [
+        "tense",
+        "case",
+        "number",
+        "gender"
+      ],
+      "by_derivation_type": [
+        "suffix",
+        "prefix",
+        "circumfix"
+      ],
+      "by_frequency": [
+        "high_freq_words",
+        "medium_freq",
+        "low_freq_rare"
+      ]
+    },
+    "error_analysis": {
+      "segmentation_errors": "tokens where MCT segmentation differs from BPE",
+      "morpheme_dropout_effects": "cases where dropout helps vs. hurts",
+      "analyzer_coverage": "% words where morphological analyzer found analysis",
+      "fallback_patterns": "when and why fallback to BPE is necessary"
+    },
+    "ablation_insights": {
+      "dropout_contribution": "how much dropout regularization helps?",
+      "boundary_contribution": "impact of morpheme boundary constraints",
+      "morphology_contribution": "value of linguistic analysis vs. pure BPE"
+    }
+  },
+  "resources": {
+    "gpu_memory_gb": 32,
+    "disk_space_gb": 600,
+    "estimated_compute_hours": 280,
+    "estimated_data_size_gb": 150
+  },
+  "model_sizes": {
+    "small": {
+      "approx_params": "~125M",
+      "encoder_layers": 6,
+      "decoder_layers": 6,
+      "d_model": 512,
+      "num_heads": 8,
+      "notes": "fast for local experiments and debugging"
+    },
+    "medium": {
+      "approx_params": "~350M",
+      "encoder_layers": 12,
+      "decoder_layers": 12,
+      "d_model": 768,
+      "num_heads": 12,
+      "notes": "recommended for main ablations (balance speed and capacity)"
+    },
+    "large": {
+      "approx_params": "~1B",
+      "encoder_layers": 24,
+      "decoder_layers": 24,
+      "d_model": 1024,
+      "num_heads": 16,
+      "notes": "high-capacity reference model; use on multi-GPU or cloud"
+    }
+  },
+  "timeline": {
+    "phase_1_setup": "Week 1 - Data download and baseline training",
+    "phase_2_mct": "Week 2 - MCT training with ablations",
+    "phase_3_analysis": "Week 3 - Detailed morphological analysis",
+    "phase_4_paper": "Week 4 - Paper restructuring with insights"
+  }
+}

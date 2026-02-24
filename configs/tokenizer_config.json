@@ -1,0 +1,13 @@
+{
+  "tokenizer_class": "MCTTokenizer",
+  "p_drop": 0.05,
+  "base_subword_algorithm": "BPE",
+  "morphological_engine": "stanza",
+  "fallback_strategy": "standard_bpe",
+  "constraints": {
+    "atomic_stem": true,
+    "segment_prefix": true,
+    "segment_suffix": true
+  },
+  "supported_languages": ["en", "de", "fi", "ar"]
+}

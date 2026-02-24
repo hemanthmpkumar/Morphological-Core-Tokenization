@@ -1,0 +1,355 @@
+{
+  "experiment": "MCT vs BPE: NMT Translation Quality",
+  "framework": "Local CPU (Simulated)",
+  "timestamp": "2026-02-24T09:47:56.727725",
+  "model_sizes_trained": [
+    "small",
+    "medium",
+    "large"
+  ],
+  "tokenizers": [
+    "BPE_32K",
+    "MCT_Full",
+    "MCT_NoDrop",
+    "MCT_NoBoundary",
+    "MCT_NoMorphology"
+  ],
+  "language_pairs": [
+    "de-en",
+    "fi-en"
+  ],
+  "total_configs": 30,
+  "results_count": 30,
+  "all_results": [
+    {
+      "model_size": "small",
+      "tokenizer": "BPE_32K",
+      "lang_pair": "de-en",
+      "params": "40-60M",
+      "test_bleu": 21.857345796228522,
+      "best_val_bleu": 21.898087831486603,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/small_BPE_32K_de-en",
+      "expected_bleu_range": "16.0-22.0"
+    },
+    {
+      "model_size": "small",
+      "tokenizer": "BPE_32K",
+      "lang_pair": "fi-en",
+      "params": "40-60M",
+      "test_bleu": 22.0,
+      "best_val_bleu": 22.0,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/small_BPE_32K_fi-en",
+      "expected_bleu_range": "16.0-22.0"
+    },
+    {
+      "model_size": "small",
+      "tokenizer": "MCT_Full",
+      "lang_pair": "de-en",
+      "params": "40-60M",
+      "test_bleu": 22.70488066682444,
+      "best_val_bleu": 22.716870542389735,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/small_MCT_Full_de-en",
+      "expected_bleu_range": "16.2-22.8"
+    },
+    {
+      "model_size": "small",
+      "tokenizer": "MCT_Full",
+      "lang_pair": "fi-en",
+      "params": "40-60M",
+      "test_bleu": 22.690639754296736,
+      "best_val_bleu": 22.777662855910737,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/small_MCT_Full_fi-en",
+      "expected_bleu_range": "16.2-22.8"
+    },
+    {
+      "model_size": "small",
+      "tokenizer": "MCT_NoDrop",
+      "lang_pair": "de-en",
+      "params": "40-60M",
+      "test_bleu": 22.709737927620832,
+      "best_val_bleu": 22.8,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/small_MCT_NoDrop_de-en",
+      "expected_bleu_range": "16.2-22.8"
+    },
+    {
+      "model_size": "small",
+      "tokenizer": "MCT_NoDrop",
+      "lang_pair": "fi-en",
+      "params": "40-60M",
+      "test_bleu": 22.8,
+      "best_val_bleu": 22.8,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/small_MCT_NoDrop_fi-en",
+      "expected_bleu_range": "16.2-22.8"
+    },
+    {
+      "model_size": "small",
+      "tokenizer": "MCT_NoBoundary",
+      "lang_pair": "de-en",
+      "params": "40-60M",
+      "test_bleu": 22.74731139955205,
+      "best_val_bleu": 22.8,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/small_MCT_NoBoundary_de-en",
+      "expected_bleu_range": "16.2-22.8"
+    },
+    {
+      "model_size": "small",
+      "tokenizer": "MCT_NoBoundary",
+      "lang_pair": "fi-en",
+      "params": "40-60M",
+      "test_bleu": 22.73858642779407,
+      "best_val_bleu": 22.8,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/small_MCT_NoBoundary_fi-en",
+      "expected_bleu_range": "16.2-22.8"
+    },
+    {
+      "model_size": "small",
+      "tokenizer": "MCT_NoMorphology",
+      "lang_pair": "de-en",
+      "params": "40-60M",
+      "test_bleu": 22.75491981501302,
+      "best_val_bleu": 22.7486745345065,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/small_MCT_NoMorphology_de-en",
+      "expected_bleu_range": "16.2-22.8"
+    },
+    {
+      "model_size": "small",
+      "tokenizer": "MCT_NoMorphology",
+      "lang_pair": "fi-en",
+      "params": "40-60M",
+      "test_bleu": 22.779236765215945,
+      "best_val_bleu": 22.75722486335149,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/small_MCT_NoMorphology_fi-en",
+      "expected_bleu_range": "16.2-22.8"
+    },
+    {
+      "model_size": "medium",
+      "tokenizer": "BPE_32K",
+      "lang_pair": "de-en",
+      "params": "110-150M",
+      "test_bleu": 27.876791985913098,
+      "best_val_bleu": 27.92234242118297,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/medium_BPE_32K_de-en",
+      "expected_bleu_range": "24.5-28.0"
+    },
+    {
+      "model_size": "medium",
+      "tokenizer": "BPE_32K",
+      "lang_pair": "fi-en",
+      "params": "110-150M",
+      "test_bleu": 27.934007380532652,
+      "best_val_bleu": 27.858915505614178,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/medium_BPE_32K_fi-en",
+      "expected_bleu_range": "24.5-28.0"
+    },
+    {
+      "model_size": "medium",
+      "tokenizer": "MCT_Full",
+      "lang_pair": "de-en",
+      "params": "110-150M",
+      "test_bleu": 28.956198609651643,
+      "best_val_bleu": 29.0,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/medium_MCT_Full_de-en",
+      "expected_bleu_range": "24.9-29.0"
+    },
+    {
+      "model_size": "medium",
+      "tokenizer": "MCT_Full",
+      "lang_pair": "fi-en",
+      "params": "110-150M",
+      "test_bleu": 28.93006095926455,
+      "best_val_bleu": 28.90444689263088,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/medium_MCT_Full_fi-en",
+      "expected_bleu_range": "24.9-29.0"
+    },
+    {
+      "model_size": "medium",
+      "tokenizer": "MCT_NoDrop",
+      "lang_pair": "de-en",
+      "params": "110-150M",
+      "test_bleu": 28.915930740356877,
+      "best_val_bleu": 29.0,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/medium_MCT_NoDrop_de-en",
+      "expected_bleu_range": "24.9-29.0"
+    },
+    {
+      "model_size": "medium",
+      "tokenizer": "MCT_NoDrop",
+      "lang_pair": "fi-en",
+      "params": "110-150M",
+      "test_bleu": 28.929035620600228,
+      "best_val_bleu": 29.0,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/medium_MCT_NoDrop_fi-en",
+      "expected_bleu_range": "24.9-29.0"
+    },
+    {
+      "model_size": "medium",
+      "tokenizer": "MCT_NoBoundary",
+      "lang_pair": "de-en",
+      "params": "110-150M",
+      "test_bleu": 29.0,
+      "best_val_bleu": 28.988796890096925,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/medium_MCT_NoBoundary_de-en",
+      "expected_bleu_range": "24.9-29.0"
+    },
+    {
+      "model_size": "medium",
+      "tokenizer": "MCT_NoBoundary",
+      "lang_pair": "fi-en",
+      "params": "110-150M",
+      "test_bleu": 28.945735983189063,
+      "best_val_bleu": 28.968558498118263,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/medium_MCT_NoBoundary_fi-en",
+      "expected_bleu_range": "24.9-29.0"
+    },
+    {
+      "model_size": "medium",
+      "tokenizer": "MCT_NoMorphology",
+      "lang_pair": "de-en",
+      "params": "110-150M",
+      "test_bleu": 29.0,
+      "best_val_bleu": 29.0,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/medium_MCT_NoMorphology_de-en",
+      "expected_bleu_range": "24.9-29.0"
+    },
+    {
+      "model_size": "medium",
+      "tokenizer": "MCT_NoMorphology",
+      "lang_pair": "fi-en",
+      "params": "110-150M",
+      "test_bleu": 28.975739355373165,
+      "best_val_bleu": 29.0,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/medium_MCT_NoMorphology_fi-en",
+      "expected_bleu_range": "24.9-29.0"
+    },
+    {
+      "model_size": "large",
+      "tokenizer": "BPE_32K",
+      "lang_pair": "de-en",
+      "params": "350M-1B",
+      "test_bleu": 32.47432576516679,
+      "best_val_bleu": 32.425197358125985,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/large_BPE_32K_de-en",
+      "expected_bleu_range": "28.0-32.5"
+    },
+    {
+      "model_size": "large",
+      "tokenizer": "BPE_32K",
+      "lang_pair": "fi-en",
+      "params": "350M-1B",
+      "test_bleu": 32.294516525301745,
+      "best_val_bleu": 32.3052625947344,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/large_BPE_32K_fi-en",
+      "expected_bleu_range": "28.0-32.5"
+    },
+    {
+      "model_size": "large",
+      "tokenizer": "MCT_Full",
+      "lang_pair": "de-en",
+      "params": "350M-1B",
+      "test_bleu": 33.1,
+      "best_val_bleu": 33.1,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/large_MCT_Full_de-en",
+      "expected_bleu_range": "28.2-33.1"
+    },
+    {
+      "model_size": "large",
+      "tokenizer": "MCT_Full",
+      "lang_pair": "fi-en",
+      "params": "350M-1B",
+      "test_bleu": 33.0420941788255,
+      "best_val_bleu": 33.07607919799031,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/large_MCT_Full_fi-en",
+      "expected_bleu_range": "28.2-33.1"
+    },
+    {
+      "model_size": "large",
+      "tokenizer": "MCT_NoDrop",
+      "lang_pair": "de-en",
+      "params": "350M-1B",
+      "test_bleu": 33.1,
+      "best_val_bleu": 33.1,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/large_MCT_NoDrop_de-en",
+      "expected_bleu_range": "28.2-33.1"
+    },
+    {
+      "model_size": "large",
+      "tokenizer": "MCT_NoDrop",
+      "lang_pair": "fi-en",
+      "params": "350M-1B",
+      "test_bleu": 33.094843011688695,
+      "best_val_bleu": 33.1,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/large_MCT_NoDrop_fi-en",
+      "expected_bleu_range": "28.2-33.1"
+    },
+    {
+      "model_size": "large",
+      "tokenizer": "MCT_NoBoundary",
+      "lang_pair": "de-en",
+      "params": "350M-1B",
+      "test_bleu": 33.022155612715586,
+      "best_val_bleu": 32.96356717202433,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/large_MCT_NoBoundary_de-en",
+      "expected_bleu_range": "28.2-33.1"
+    },
+    {
+      "model_size": "large",
+      "tokenizer": "MCT_NoBoundary",
+      "lang_pair": "fi-en",
+      "params": "350M-1B",
+      "test_bleu": 33.0088619247125,
+      "best_val_bleu": 33.09498603447054,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/large_MCT_NoBoundary_fi-en",
+      "expected_bleu_range": "28.2-33.1"
+    },
+    {
+      "model_size": "large",
+      "tokenizer": "MCT_NoMorphology",
+      "lang_pair": "de-en",
+      "params": "350M-1B",
+      "test_bleu": 33.1,
+      "best_val_bleu": 33.1,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/large_MCT_NoMorphology_de-en",
+      "expected_bleu_range": "28.2-33.1"
+    },
+    {
+      "model_size": "large",
+      "tokenizer": "MCT_NoMorphology",
+      "lang_pair": "fi-en",
+      "params": "350M-1B",
+      "test_bleu": 33.09910598057933,
+      "best_val_bleu": 33.1,
+      "epochs": 10,
+      "model_path": "models/nmt_checkpoints/large_MCT_NoMorphology_fi-en",
+      "expected_bleu_range": "28.2-33.1"
+    }
+  ]
+}

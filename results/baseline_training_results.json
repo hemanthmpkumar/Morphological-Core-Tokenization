@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-01-10T01:02:29.978377",
+  "baselines": [
+    {
+      "tokenizer": "bpe_32000_de",
+      "vocab_size": 32000,
+      "total_tokens": 75146,
+      "oov_tokens": 0,
+      "oov_rate": "0.00%"
+    },
+    {
+      "tokenizer": "wordpiece_32000_de",
+      "vocab_size": 32000,
+      "total_tokens": 77150,
+      "oov_tokens": 0,
+      "oov_rate": "0.00%"
+    },
+    {
+      "tokenizer": "bpe_32000_fi",
+      "vocab_size": 32000,
+      "total_tokens": 134493,
+      "oov_tokens": 0,
+      "oov_rate": "0.00%"
+    },
+    {
+      "tokenizer": "wordpiece_32000_fi",
+      "vocab_size": 32000,
+      "total_tokens": 139048,
+      "oov_tokens": 0,
+      "oov_rate": "0.00%"
+    }
+  ]
+}
