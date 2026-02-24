@@ -332,6 +332,53 @@ vim configs/tokenizer_config.json
 ./scripts/run_complete_experiment.sh
 ```
 
+## Retrieving Trained Checkpoints
+
+After an experiment completes the serialized models are placed under
+`models/nmt_checkpoints/` with a subdirectory for each configuration.
+Here are a few convenient ways to download them:
+
+- **Direct copy (local runs)**
+
+  ```bash
+  cp -r models/nmt_checkpoints ~/my_local_models/
+  ```
+
+- **From a Google Cloud VM**
+
+  ```bash
+  # pull the whole directory to your workstation
+  gcloud compute scp --recurse mct-t4:~/mct_tokenization/models/nmt_checkpoints ./local_models
+
+  # or archive & use Cloud Storage
+  # (run on the VM)
+  tar czf mct_models.tar.gz models/nmt_checkpoints
+  gsutil cp mct_models.tar.gz gs://my-bucket/experiments/
+
+  # on your laptop
+  gsutil cp gs://my-bucket/experiments/mct_models.tar.gz .
+  tar xzf mct_models.tar.gz
+  ```
+
+- **Upload to Hugging Face Hub**
+
+  ```bash
+  pip install huggingface_hub
+  python - <<'PY'
+  from huggingface_hub import Repository, upload_file
+  repo = Repository("username/mct-small")
+  repo.git_pull()
+  upload_file(
+      "models/nmt_checkpoints/small_MCT_Full_de-en/checkpoint.pt",
+      path_in_repo="pytorch_model.bin",
+      repo_id="username/mct-small"
+  )
+  PY
+  ```
+
+Once the files are in a shared location, colleagues can download them
+with `hf_hub_download` or standard `scp`/`gsutil` commands.
+
 ## Troubleshooting
 
 ### Script Won't Run

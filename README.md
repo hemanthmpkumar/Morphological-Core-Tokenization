@@ -103,6 +103,59 @@ This repository provides a production-ready implementation of Morphological-Core
 - **BLEU improvements**: See `results/analysis/NMT_RESULTS_ANALYSIS.md`
 - **Graphs**: See `results/analysis/bleu_comparison_barplot.png` and `bleu_gain_heatmap.png`
 
+### 🚚 Retrieving trained models
+
+After you run an experiment the checkpoint files are saved under
+`models/nmt_checkpoints/<size>_<tokenizer>_<lang_pair>/`.
+
+#### Local machine
+Simply copy or move the directory where you need it. For example:
+
+```bash
+cp -r models/nmt_checkpoints ~/my_models/
+```
+
+#### From a cloud VM (GCP/AWS/Azure)
+If you trained on a remote instance you can pull the files back with
+`scp`/`gcloud compute scp` or upload them to a storage bucket.
+
+```bash
+# from your workstation:
+gcloud compute scp --recurse mct-t4:~/mct_tokenization/models/nmt_checkpoints ./local_models
+
+# OR, on the VM, create an archive and push to GCS:
+cd ~/mct_tokenization
+tar czf mct_models.tar.gz models/nmt_checkpoints
+gsutil cp mct_models.tar.gz gs://my-bucket/experiments/
+
+# then back on your laptop:
+gsutil cp gs://my-bucket/experiments/mct_models.tar.gz .
+tar xzf mct_models.tar.gz
+```
+
+#### Publishing / sharing
+You can also host the checkpoints on the Hugging Face Hub or any
+object store.  Example using `huggingface_hub`:
+
+```python
+from huggingface_hub import HfApi, upload_file
+api = HfApi()
+
+# create repo once
+api.create_repo("username/mct-small", exist_ok=True)
+
+# upload a single checkpoint file
+upload_file(
+    path_or_fileobj="models/nmt_checkpoints/small_MCT_Full_de-en/checkpoint.pt",
+    path_in_repo="pytorch_model.bin",
+    repo_id="username/mct-small"
+)
+```
+
+Once uploaded, others can download with `hf_hub_download` or the
+`git lfs` interface.
+
+
 ## Citation
 If you use this codebase, please cite the associated paper.
 

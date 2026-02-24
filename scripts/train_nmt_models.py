@@ -137,10 +137,15 @@ class LocalNMTTrainer:
                         break
                     try:
                         example = json.loads(line.strip())
-                        if isinstance(example, dict) and 'translation' in example:
-                            trans = example['translation']
-                            src = trans.get(self.lang_pair.split('-')[0], '')
-                            tgt = trans.get(self.lang_pair.split('-')[1], '')
+                        if isinstance(example, dict):
+                            # Handle both formats: new (flat) and legacy (nested 'translation' key)
+                            if 'translation' in example:
+                                trans = example['translation']
+                            else:
+                                trans = example
+                            src_lang, tgt_lang = self.lang_pair.split('-')
+                            src = trans.get(src_lang, '')
+                            tgt = trans.get(tgt_lang, '')
                             if src and tgt:
                                 train_pairs.append((src, tgt))
                     except:
@@ -154,10 +159,15 @@ class LocalNMTTrainer:
                         break
                     try:
                         example = json.loads(line.strip())
-                        if isinstance(example, dict) and 'translation' in example:
-                            trans = example['translation']
-                            src = trans.get(self.lang_pair.split('-')[0], '')
-                            tgt = trans.get(self.lang_pair.split('-')[1], '')
+                        if isinstance(example, dict):
+                            # Handle both formats: new (flat) and legacy (nested 'translation' key)
+                            if 'translation' in example:
+                                trans = example['translation']
+                            else:
+                                trans = example
+                            src_lang, tgt_lang = self.lang_pair.split('-')
+                            src = trans.get(src_lang, '')
+                            tgt = trans.get(tgt_lang, '')
                             if src and tgt:
                                 test_pairs.append((src, tgt))
                     except:
