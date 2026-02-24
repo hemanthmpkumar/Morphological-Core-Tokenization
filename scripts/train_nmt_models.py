@@ -287,8 +287,9 @@ class LocalNMTTrainer:
                 src_tensor = torch.tensor(padded_src, dtype=torch.long).to(device)
                 tgt_tensor = torch.tensor(padded_tgt, dtype=torch.long).to(device)
                 
-                outputs = model(src_tensor)  # [batch, seq_len, vocab_size]
-                loss = loss_fn(outputs.view(-1, outputs.size(-1)), tgt_tensor.view(-1))
+                outputs = model(src_tensor)  # Returns CausalLMOutput
+                logits = outputs.logits if hasattr(outputs, 'logits') else outputs
+                loss = loss_fn(logits.view(-1, logits.size(-1)), tgt_tensor.view(-1))
                 
                 # Backward pass
                 optimizer.zero_grad()
@@ -328,7 +329,8 @@ class LocalNMTTrainer:
                     tgt_tensor = torch.tensor(padded_tgt, dtype=torch.long).to(device)
                     
                     outputs = model(src_tensor)
-                    loss = loss_fn(outputs.view(-1, outputs.size(-1)), tgt_tensor.view(-1))
+                    logits = outputs.logits if hasattr(outputs, 'logits') else outputs
+                    loss = loss_fn(logits.view(-1, logits.size(-1)), tgt_tensor.view(-1))
                     val_loss += loss.item()
                     num_val_batches += 1
             
@@ -375,7 +377,8 @@ class LocalNMTTrainer:
                 tgt_tensor = torch.tensor(padded_tgt, dtype=torch.long).to(device)
                 
                 outputs = model(src_tensor)
-                loss = loss_fn(outputs.view(-1, outputs.size(-1)), tgt_tensor.view(-1))
+                logits = outputs.logits if hasattr(outputs, 'logits') else outputs
+                loss = loss_fn(logits.view(-1, logits.size(-1)), tgt_tensor.view(-1))
                 test_loss += loss.item()
                 num_test_batches += 1
         

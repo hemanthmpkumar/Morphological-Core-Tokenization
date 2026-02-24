@@ -56,8 +56,18 @@ class MCTTransformer(PreTrainedModel):
         # Output head for language modeling
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size)
         
-        # Initialize weights
-        self.init_weights()
+        # Initialize weights manually (simpler than parent's complex init_weights)
+        self._init_weights()
+
+    def _init_weights(self):
+        """Initialize model weights with appropriate scaling."""
+        for module in self.modules():
+            if isinstance(module, nn.Linear):
+                nn.init.normal_(module.weight, mean=0.0, std=0.02)
+                if module.bias is not None:
+                    nn.init.constant_(module.bias, 0.0)
+            elif isinstance(module, nn.Embedding):
+                nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
     def forward(self, input_ids, attention_mask=None, token_type_ids=None, labels=None, 
                 position_ids=None, return_dict=True):
