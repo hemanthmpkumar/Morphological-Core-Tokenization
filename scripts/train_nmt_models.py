@@ -22,6 +22,10 @@ logger = logging.getLogger(__name__)
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from src.models.mct_transformer import MCTTransformer
+from src.models.configuration_mct import MCTConfig
+from src.utils.device import get_compute_device
+
 CONFIG_FILE = Path('logs/experiment_config.json')
 TRAINING_RESULTS_FILE = Path('results/mct_training_results.json')
 NMT_RESULTS_FILE = Path('results/nmt_training_results.json')
@@ -229,16 +233,17 @@ class LocalNMTTrainer:
         device = get_compute_device()
         logger.info(f"Using device: {device}")
         
-        # Create model
-        config = self.config
-        model = MCTTransformer(
-            vocab_size=config['vocab_size'],
-            hidden_size=config['d_model'],
-            num_hidden_layers=config['layers'],
-            num_attention_heads=config['heads'],
-            intermediate_size=config['d_ff'],
+        # Create model config
+        config_dict = self.config
+        mct_config = MCTConfig(
+            vocab_size=config_dict['vocab_size'],
+            hidden_size=config_dict['d_model'],
+            num_hidden_layers=config_dict['layers'],
+            num_attention_heads=config_dict['heads'],
+            intermediate_size=config_dict['d_ff'],
             max_position_embeddings=512,
-        ).to(device)
+        )
+        model = MCTTransformer(mct_config).to(device)
         
         # Optimizer and loss
         optimizer = Adam(model.parameters(), lr=self.config['lr'])
