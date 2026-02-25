@@ -26,7 +26,7 @@ from src.models.mct_transformer import MCTTransformer
 from src.models.configuration_mct import MCTConfig
 from src.utils.device import get_compute_device
 from src.tokenizer.mct_tokenizer import MCTTokenizer
-from src.tokenizer.constrained_bpe import ConstrainedBPE
+from src.tokenizer.constrained_bpe import ConstrainedBPETrainer
 
 try:
     import sacrebleu
@@ -149,7 +149,7 @@ class LocalNMTTrainer:
                     logger.info(f"Created basic MCT tokenizer (config not found)")
             elif self.tokenizer_name == 'BPE_32K':
                 # Create BPE tokenizer
-                self.tokenizer = ConstrainedBPE(vocab_size=self.config['vocab_size'])
+                self.tokenizer = ConstrainedBPETrainer(vocab_size=self.config['vocab_size'])
                 logger.info(f"Loaded tokenizer: BPE_32K")
             else:
                 logger.warning(f"Unknown tokenizer: {self.tokenizer_name}; using placeholder")
