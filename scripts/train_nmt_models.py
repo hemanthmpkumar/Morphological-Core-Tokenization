@@ -448,7 +448,8 @@ def main():
     
     # Default language pairs - can be overridden by env MCT_LANG_PAIRS
     # Supported: de-en, fi-en, fr-en, ru-en, cs-en, tr-en, zh-en, ja-en, ar-en, hi-en, sw-en
-    default_lang_pairs = ['de-en', 'fi-en']
+    # Use the full set by default so remote restarts pick up all requested languages
+    default_lang_pairs = ['de-en', 'fr-en', 'ru-en', 'cs-en', 'tr-en', 'fi-en', 'zh-en', 'ja-en', 'ro-en', 'ar-en', 'hi-en', 'sw-en']
     lang_pairs = os.environ.get('MCT_LANG_PAIRS', ','.join(default_lang_pairs)).split(',')
     lang_pairs = [p.strip() for p in lang_pairs]
     
