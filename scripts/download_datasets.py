@@ -205,55 +205,73 @@ def download_pubmed_sample(output_dir: Path, num_samples: int = 50000) -> Path:
         return None
 
 
-def verify_downloads(output_dir: Path) -> Dict[str, bool]:
+def verify_downloads(output_dir: Path, lang_pairs: list) -> Dict[str, bool]:
     """Verify all datasets downloaded successfully."""
-    files = {
-        'wmt14_de_en.train.jsonl': output_dir / 'wmt14_de_en.train.jsonl',
-        'wmt14_de_en.newstest2014.jsonl': output_dir / 'wmt14_de_en.newstest2014.jsonl',
-        'wmt16_fi_en.train.jsonl': output_dir / 'wmt16_fi_en.train.jsonl',
-        'wmt16_fi_en.newstest2016.jsonl': output_dir / 'wmt16_fi_en.newstest2016.jsonl',
-    }
-    
     results = {}
-    for name, path in files.items():
-        exists = path.exists()
-        size_mb = (path.stat().st_size / (1024*1024)) if exists else 0
-        results[name] = exists
-        status = f"✓ ({size_mb:.1f} MB)" if exists else "✗ MISSING"
-        logger.info(f"  {name}: {status}")
+    
+    for lang_pair in lang_pairs:
+        src, tgt = lang_pair.split('-')
+        # Find any JSONL files matching this language pair
+        train_files = list(output_dir.glob(f'wmt*_{src}_{tgt}.train.jsonl'))
+        test_files = list(output_dir.glob(f'wmt*_{src}_{tgt}.test.jsonl'))
+        
+        if train_files:
+            train_path = train_files[0]
+            exists = train_path.exists()
+            size_mb = (train_path.stat().st_size / (1024*1024)) if exists else 0
+            results[lang_pair] = exists
+            status = f"✓ ({size_mb:.1f} MB)" if exists else "✗ MISSING"
+            logger.info(f"  {train_path.name}: {status}")
+        else:
+            results[lang_pair] = False
+            logger.warning(f"  {lang_pair}: ✗ NO FILES FOUND")
     
     return results
 
 
-def create_dataset_manifest(output_dir: Path, stats: Dict) -> None:
+def create_dataset_manifest(output_dir: Path, stats: Dict, lang_pairs: list) -> None:
     """Create manifest of downloaded datasets."""
     manifest = {
         'timestamp': __import__('datetime').datetime.now().isoformat(),
-        'datasets': {
-            'wmt14_de_en': {
-                'train_path': str(output_dir / 'wmt14_de_en.train.jsonl'),
-                'test_path': str(output_dir / 'wmt14_de_en.newstest2014.jsonl'),
-                'language_pair': 'de-en',
-                'status': 'ready' if stats.get('wmt14_de_en.train.jsonl') else 'missing'
-            },
-            'wmt16_fi_en': {
-                'train_path': str(output_dir / 'wmt16_fi_en.train.jsonl'),
-                'test_path': str(output_dir / 'wmt16_fi_en.newstest2016.jsonl'),
-                'language_pair': 'fi-en',
-                'status': 'ready' if stats.get('wmt16_fi_en.train.jsonl') else 'missing'
-            },
-            'arxiv': {
-                'path': str(output_dir / 'arxiv_abstracts.jsonl'),
-                'type': 'optional_analysis',
-                'status': 'ready' if (output_dir / 'arxiv_abstracts.jsonl').exists() else 'skipped'
-            },
-            'pubmed': {
-                'path': str(output_dir / 'pubmed_abstracts.jsonl'),
-                'type': 'optional_analysis',
-                'status': 'ready' if (output_dir / 'pubmed_abstracts.jsonl').exists() else 'skipped'
-            }
-        }
+        'language_pairs': lang_pairs,
+        'datasets': {},
+        'optional_datasets': {}
     }
+    
+    # Add core language pair datasets
+    for lang_pair in lang_pairs:
+        src, tgt = lang_pair.split('-')
+        train_files = list(output_dir.glob(f'wmt*_{src}_{tgt}.train.jsonl'))
+        test_files = list(output_dir.glob(f'wmt*_{src}_{tgt}.test.jsonl'))
+        
+        if train_files and test_files:
+            manifest['datasets'][lang_pair] = {
+                'train_path': str(train_files[0]),
+                'test_path': str(test_files[0]),
+                'status': 'ready'
+            }
+        else:
+            manifest['datasets'][lang_pair] = {
+                'status': 'unavailable'
+            }
+    
+    # Add optional datasets
+    arxiv_path = output_dir / 'arxiv_abstracts.jsonl'
+    pubmed_path = output_dir / 'pubmed_abstracts.jsonl'
+    
+    if arxiv_path.exists():
+        manifest['optional_datasets']['arxiv'] = {
+            'path': str(arxiv_path),
+            'type': 'optional_analysis',
+            'status': 'ready'
+        }
+    
+    if pubmed_path.exists():
+        manifest['optional_datasets']['pubmed'] = {
+            'path': str(pubmed_path),
+            'type': 'optional_analysis',
+            'status': 'ready'
+        }
     
     manifest_path = output_dir / 'dataset_manifest.json'
     with open(manifest_path, 'w') as f:
@@ -308,25 +326,38 @@ def main():
     
     # Verify
     logger.info("\n[3] Verifying downloads...")
-    stats = verify_downloads(output_dir)
+    stats = verify_downloads(output_dir, lang_pairs)
     
     # Create manifest
     logger.info("\n[4] Creating dataset manifest...")
-    create_dataset_manifest(output_dir, stats)
+    create_dataset_manifest(output_dir, stats, lang_pairs)
     
     # Summary
-    core_ready = all([
-        stats.get('wmt14_de_en.train.jsonl'),
-        stats.get('wmt16_fi_en.train.jsonl')
-    ])
+    ready_pairs = [pair for pair in lang_pairs if stats.get(pair, False)]
+    total_pairs = len(lang_pairs)
     
     logger.info("\n" + "=" * 80)
-    if core_ready:
-        logger.info("✓ DATASETS READY FOR EXPERIMENTS")
-        logger.info("\nNext: python3 scripts/train_baselines.py")
+    logger.info(f"DOWNLOAD SUMMARY: {len(ready_pairs)}/{total_pairs} language pairs ready")
+    
+    if ready_pairs:
+        logger.info("\nReady pairs:")
+        for pair in ready_pairs:
+            logger.info(f"  ✓ {pair}")
+    
+    missing_pairs = [pair for pair in lang_pairs if not stats.get(pair, False)]
+    if missing_pairs:
+        logger.warning("\nUnavailable pairs (not in public WMT):")
+        for pair in missing_pairs:
+            logger.warning(f"  ✗ {pair}")
+    
+    if ready_pairs:
+        logger.info(f"\nNext: python3 scripts/train_nmt_models.py")
+        logger.info(f"Configure with: MCT_LANG_PAIRS='{','.join(ready_pairs)}'")
+        core_ready = True
     else:
-        logger.error("✗ CRITICAL DATASETS MISSING")
-        logger.error("Cannot proceed without WMT14 and WMT16 data")
+        logger.error("✗ NO DATASETS DOWNLOADED")
+        core_ready = False
+    
     logger.info("=" * 80)
     
     return core_ready
