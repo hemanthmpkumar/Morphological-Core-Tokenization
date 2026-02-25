@@ -120,24 +120,34 @@ class LocalNMTTrainer:
         
     def load_dataset(self) -> Tuple[List, List, List]:
         """Load training data from JSONL files or use synthetic data."""
-        dataset_map = {
-            'de-en': ('wmt14_de_en.train.jsonl', 'wmt14_de_en.newstest2014.jsonl'),
-            'fi-en': ('wmt16_fi_en.train.jsonl', 'wmt16_fi_en.newstest2016.jsonl'),
-        }
-        
-        if self.lang_pair not in dataset_map:
-            logger.warning(f"Dataset not found for {self.lang_pair}")
-            return [], [], []
-        
-        train_file, test_file = dataset_map[self.lang_pair]
-        train_path = DATA_DIR / train_file
-        test_path = DATA_DIR / test_file
+        # Dynamically find any downloaded WMT JSONL files for the requested pair.
+        # Expected filenames: wmt<year>_<src>_<tgt>.train.jsonl and .test.jsonl
+        src_lang, tgt_lang = self.lang_pair.split('-')
+        train_path = None
+        test_path = None
+
+        try:
+            # Look for matching train/test files in DATA_DIR
+            train_matches = sorted(DATA_DIR.glob(f"wmt*_{src_lang}_{tgt_lang}.train.jsonl"), reverse=True)
+            test_matches = sorted(DATA_DIR.glob(f"wmt*_{src_lang}_{tgt_lang}.test.jsonl"), reverse=True)
+
+            if train_matches:
+                train_path = train_matches[0]
+            if test_matches:
+                test_path = test_matches[0]
+
+            if not train_path:
+                logger.warning(f"Dataset not found for {self.lang_pair}")
+        except Exception as e:
+            logger.warning(f"Error while searching for datasets for {self.lang_pair}: {e}")
+            train_path = None
+            test_path = None
         
         train_pairs = []
         test_pairs = []
         
         # Load training data (sample for speed)
-        if train_path.exists():
+        if train_path and train_path.exists():
             with open(train_path) as f:
                 for i, line in enumerate(f):
                     if i >= 50000:  # Limit for local training
@@ -150,16 +160,15 @@ class LocalNMTTrainer:
                                 trans = example['translation']
                             else:
                                 trans = example
-                            src_lang, tgt_lang = self.lang_pair.split('-')
                             src = trans.get(src_lang, '')
                             tgt = trans.get(tgt_lang, '')
                             if src and tgt:
                                 train_pairs.append((src, tgt))
-                    except:
+                    except Exception:
                         continue
         
         # Load test data
-        if test_path.exists():
+        if test_path and test_path.exists():
             with open(test_path) as f:
                 for i, line in enumerate(f):
                     if i >= 3000:  # Full test set
@@ -167,17 +176,15 @@ class LocalNMTTrainer:
                     try:
                         example = json.loads(line.strip())
                         if isinstance(example, dict):
-                            # Handle both formats: new (flat) and legacy (nested 'translation' key)
                             if 'translation' in example:
                                 trans = example['translation']
                             else:
                                 trans = example
-                            src_lang, tgt_lang = self.lang_pair.split('-')
                             src = trans.get(src_lang, '')
                             tgt = trans.get(tgt_lang, '')
                             if src and tgt:
                                 test_pairs.append((src, tgt))
-                    except:
+                    except Exception:
                         continue
         
         # If datasets not found, use synthetic data for demonstration
