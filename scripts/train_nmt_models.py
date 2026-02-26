@@ -665,6 +665,7 @@ import os
 import json
 import logging
 import math
+from pyexpat import model
 import random
 from pathlib import Path
 import sys
@@ -679,7 +680,7 @@ logger = logging.getLogger(__name__)
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from torch.utils.data import Dataset, DataLoader
-from torch.cuda.amp import autocast, GradScaler
+from torch import amp
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
@@ -964,8 +965,7 @@ class Trainer:
 
                 optimizer.zero_grad()
 
-                with autocast():
-
+                with torch.amp.autocast(device_type="cuda", dtype=torch.float16):
                     outputs = model(src)
 
                     logits = outputs.logits if hasattr(outputs, "logits") else outputs
