@@ -876,6 +876,30 @@ class Trainer:
 
         return MCTTransformer(model_cfg).to(DEVICE)
 
+    def nmt_collate_fn(batch):
+
+        src_batch = [b[0] for b in batch]
+        tgt_batch = [b[1] for b in batch]
+
+        max_src = max(x.size(0) for x in src_batch)
+        max_tgt = max(x.size(0) for x in tgt_batch)
+
+        padded_src = []
+        padded_tgt = []
+
+        for src, tgt in zip(src_batch, tgt_batch):
+
+            src_pad = torch.zeros(max_src, dtype=torch.long)
+            tgt_pad = torch.zeros(max_tgt, dtype=torch.long)
+
+            src_pad[:src.size(0)] = src
+            tgt_pad[:tgt.size(0)] = tgt
+
+            padded_src.append(src_pad)
+            padded_tgt.append(tgt_pad)
+
+        return torch.stack(padded_src), torch.stack(padded_tgt)
+    
     # -------------------------------------------------
 
     def train(self):
@@ -893,8 +917,9 @@ class Trainer:
             train_dataset,
             batch_size=self.config["batch_size"],
             shuffle=True,
-            num_workers=4,
-            pin_memory=True
+            num_workers=2,
+            pin_memory=True,
+            collate_fn=nmt_collate_fn
         )
 
         val_loader = DataLoader(
