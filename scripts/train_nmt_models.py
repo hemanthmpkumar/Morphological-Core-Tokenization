@@ -975,12 +975,15 @@ class Trainer:
                         tgt.view(-1)
                     )
 
-                self.scaler.scale(loss).backward()
-
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-
-                self.scaler.step(optimizer)
-                self.scaler.update()
+                if self.scaler is not None:
+                    self.scaler.scale(loss).backward()
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                    self.scaler.step(optimizer)
+                    self.scaler.update()
+                else:
+                    loss.backward()
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                    optimizer.step()
 
                 epoch_loss += loss.item()
 
