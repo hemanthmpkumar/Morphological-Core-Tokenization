@@ -661,207 +661,171 @@
 # FIXED TRAINING SCRIPT VERSION
 # ===============================
 
+import os
 import json
 import logging
-import os
-import sys
+import math
+import random
 from pathlib import Path
+import sys
+
 import numpy as np
 import torch
 import torch.nn as nn
-import math
-import random
-
-from torch.optim import Adam
-from torch.optim.lr_scheduler import LambdaLR
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from torch.utils.data import Dataset, DataLoader
+from torch.cuda.amp import autocast, GradScaler
+from torch.optim import AdamW
+from torch.optim.lr_scheduler import CosineAnnealingLR
+
+import sacrebleu
+
 from src.models.mct_transformer import MCTTransformer
 from src.models.configuration_mct import MCTConfig
-from src.utils.device import get_compute_device
 from src.tokenizer.mct_tokenizer import MCTTokenizer
 from src.tokenizer.constrained_bpe import ConstrainedBPETrainer
 
-try:
-    import sacrebleu
-except ImportError:
-    sacrebleu = None
-
-
-DATA_DIR = Path("data/raw")
-MODELS_DIR = Path("models/nmt_checkpoints")
-MODELS_DIR.mkdir(parents=True, exist_ok=True)
-
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # ============================================================
 # CONFIG
 # ============================================================
 
-class ModelConfig:
+DATA_DIR = Path("data/raw")
+MODEL_DIR = Path("models/nmt_checkpoints")
+MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
-    sizes = {
-        "small": dict(
-            vocab_size=32000,
-            layers=4,
-            d_model=256,
-            heads=4,
-            d_ff=1024,
-            batch_size=32,
-            epochs=10,
-            lr=0.001
-        ),
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        "medium": dict(
-            vocab_size=32000,
-            layers=6,
-            d_model=512,
-            heads=8,
-            d_ff=2048,
-            batch_size=32,
-            epochs=10,
-            lr=0.001
+logger.info(f"Using device = {DEVICE}")
+
+# ============================================================
+# DATASET
+# ============================================================
+
+class ParallelDataset(Dataset):
+
+    def __init__(self, pairs, tokenizer, max_len=100):
+
+        self.pairs = pairs
+        self.tokenizer = tokenizer
+        self.max_len = max_len
+
+    def encode(self, text):
+
+        if self.tokenizer and hasattr(self.tokenizer, "encode"):
+            try:
+                return self.tokenizer.encode(text)[:self.max_len]
+            except:
+                pass
+
+        return [ord(c) % 256 for c in text[:self.max_len]]
+
+    def __len__(self):
+        return len(self.pairs)
+
+    def __getitem__(self, idx):
+
+        src, tgt = self.pairs[idx]
+
+        src_ids = self.encode(src)
+        tgt_ids = self.encode(tgt)
+
+        return (
+            torch.tensor(src_ids, dtype=torch.long),
+            torch.tensor(tgt_ids, dtype=torch.long)
         )
-    }
-
-    @staticmethod
-    def get(size):
-        return ModelConfig.sizes[size]
-
 
 # ============================================================
 # TRAINER
 # ============================================================
 
-class LocalNMTTrainer:
+class Trainer:
 
-    def __init__(self, model_size, tokenizer_name, lang_pair):
+    def __init__(self, model_size="small", tokenizer_name="BPE_32K", lang_pair="de-en"):
 
         self.model_size = model_size
         self.tokenizer_name = tokenizer_name
         self.lang_pair = lang_pair
 
-        self.config = ModelConfig.get(model_size)
-
-        self.device = get_compute_device()
+        self.config = self.get_config(model_size)
 
         self.tokenizer = None
 
-        self.loss_fn = nn.CrossEntropyLoss(ignore_index=0)
+        self.scaler = GradScaler()
 
-        self.train_losses = []
-        self.val_bleus = []
-        self.best_bleu = 0
+    # -------------------------------------------------
+
+    def get_config(self, size):
+
+        configs = {
+
+            "small": dict(
+                vocab_size=32000,
+                layers=4,
+                d_model=256,
+                heads=4,
+                d_ff=1024,
+                batch_size=64,
+                epochs=10,
+                lr=2e-4
+            ),
+
+            "medium": dict(
+                vocab_size=32000,
+                layers=6,
+                d_model=512,
+                heads=8,
+                d_ff=2048,
+                batch_size=32,
+                epochs=8,
+                lr=2e-4
+            )
+        }
+
+        return configs[size]
 
     # -------------------------------------------------
 
     def load_tokenizer(self):
 
-        try:
-            if self.tokenizer_name.startswith("MCT"):
+        if self.tokenizer_name.startswith("MCT"):
 
-                variant = self.tokenizer_name.replace("MCT_", "")
-
-                self.tokenizer = MCTTokenizer(
-                    vocab_size=self.config["vocab_size"],
-                    morphology_variant=None if variant == "Full" else variant
-                )
-
-            elif self.tokenizer_name == "BPE_32K":
-
-                self.tokenizer = ConstrainedBPETrainer(
-                    vocab_size=self.config["vocab_size"]
-                )
-
-        except Exception as e:
-            logger.warning(f"Tokenizer load failed {e}")
-            self.tokenizer = None
-
-    # -------------------------------------------------
-
-    def encode(self, text):
-
-        try:
-            if self.tokenizer and hasattr(self.tokenizer, "encode"):
-                return self.tokenizer.encode(text)[:100]
-        except:
-            pass
-
-        return [ord(c) % 256 for c in text[:100]]
-
-    # -------------------------------------------------
-
-    def decode_clean(self, tokens):
-
-        tokens = [t for t in tokens if t > 0]
-
-        while len(tokens) > 0 and tokens[-1] < 3:
-            tokens.pop()
-
-        if self.tokenizer and hasattr(self.tokenizer, "decode"):
-            try:
-                return self.tokenizer.decode(tokens)
-            except:
-                return ""
-
-        return ""
-
-    # -------------------------------------------------
-
-    def masked_loss(self, logits, target):
-
-        vocab = logits.size(-1)
-
-        logits_flat = logits.view(-1, vocab)
-        target_flat = target.view(-1)
-
-        mask = target_flat > 0
-
-        if mask.sum() == 0:
-            return torch.tensor(0.0, device=logits.device)
-
-        return self.loss_fn(
-            logits_flat[mask],
-            target_flat[mask]
-        )
-
-    # -------------------------------------------------
-
-    def build_scheduler(self, optimizer):
-
-        warmup = 2000
-
-        def lr_lambda(step):
-
-            if step < warmup:
-                return step / max(1, warmup)
-
-            progress = (step - warmup) / 20000
-
-            return max(
-                0.1,
-                0.5 * (1 + math.cos(math.pi * progress))
+            self.tokenizer = MCTTokenizer(
+                vocab_size=self.config["vocab_size"]
             )
 
-        return LambdaLR(optimizer, lr_lambda)
+        elif self.tokenizer_name == "BPE_32K":
+
+            self.tokenizer = ConstrainedBPETrainer(
+                vocab_size=self.config["vocab_size"]
+            )
 
     # -------------------------------------------------
 
-    def load_real_dataset(self):
+    def load_dataset(self):
 
         src_lang, tgt_lang = self.lang_pair.split('-')
+
+        train_files = sorted(
+            DATA_DIR.glob(f"*{src_lang}_{tgt_lang}.train.jsonl")
+        )
+
+        if not train_files:
+            raise RuntimeError("Dataset not found")
 
         def load_pairs(path):
 
             pairs = []
 
-            if not path.exists():
-                return pairs
-
             with open(path) as f:
+
                 for line in f:
 
                     try:
@@ -870,8 +834,8 @@ class LocalNMTTrainer:
                         if "translation" in obj:
                             obj = obj["translation"]
 
-                        src = obj.get(src_lang, "")
-                        tgt = obj.get(tgt_lang, "")
+                        src = obj.get(src_lang)
+                        tgt = obj.get(tgt_lang)
 
                         if src and tgt:
                             pairs.append((src, tgt))
@@ -881,31 +845,36 @@ class LocalNMTTrainer:
 
             return pairs
 
-        train_file = sorted(
-            DATA_DIR.glob(f"*{src_lang}_{tgt_lang}.train.jsonl")
-        )
-
-        test_file = sorted(
-            DATA_DIR.glob(f"*{src_lang}_{tgt_lang}.test.jsonl")
-        )
-
-        if not train_file:
-            raise RuntimeError("Training dataset not found")
-
-        train_pairs = load_pairs(train_file[0])
-        test_pairs = load_pairs(test_file[0]) if test_file else []
+        train_pairs = load_pairs(train_files[0])
 
         if len(train_pairs) < 1000:
             raise RuntimeError("Dataset too small")
 
-        val_size = max(1, int(len(train_pairs) * 0.1))
-
         random.shuffle(train_pairs)
 
-        val_pairs = train_pairs[-val_size:]
-        train_pairs = train_pairs[:-val_size]
+        val_size = max(1, int(len(train_pairs) * 0.1))
 
-        return train_pairs, val_pairs, test_pairs
+        return (
+            train_pairs[:-val_size],
+            train_pairs[-val_size:]
+        )
+
+    # -------------------------------------------------
+
+    def build_model(self):
+
+        cfg = self.config
+
+        model_cfg = MCTConfig(
+            vocab_size=cfg["vocab_size"],
+            hidden_size=cfg["d_model"],
+            num_hidden_layers=cfg["layers"],
+            num_attention_heads=cfg["heads"],
+            intermediate_size=cfg["d_ff"],
+            max_position_embeddings=512
+        )
+
+        return MCTTransformer(model_cfg).to(DEVICE)
 
     # -------------------------------------------------
 
@@ -915,109 +884,96 @@ class LocalNMTTrainer:
 
         self.load_tokenizer()
 
-        train_pairs, val_pairs, test_pairs = self.load_real_dataset()
+        train_pairs, val_pairs = self.load_dataset()
 
-        cfg = self.config
+        train_dataset = ParallelDataset(train_pairs, self.tokenizer)
+        val_dataset = ParallelDataset(val_pairs, self.tokenizer)
 
-        mct_config = MCTConfig(
-            vocab_size=cfg["vocab_size"],
-            hidden_size=cfg["d_model"],
-            num_hidden_layers=cfg["layers"],
-            num_attention_heads=cfg["heads"],
-            intermediate_size=cfg["d_ff"],
-            max_position_embeddings=512
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=self.config["batch_size"],
+            shuffle=True,
+            num_workers=4,
+            pin_memory=True
         )
 
-        model = MCTTransformer(mct_config).to(self.device)
+        val_loader = DataLoader(
+            val_dataset,
+            batch_size=self.config["batch_size"]
+        )
 
-        optimizer = Adam(
+        model = self.build_model()
+
+        optimizer = AdamW(
             model.parameters(),
-            lr=cfg["lr"],
+            lr=self.config["lr"],
             betas=(0.9, 0.98),
-            eps=1e-9
+            eps=1e-8
         )
 
-        scheduler = self.build_scheduler(optimizer)
+        scheduler = CosineAnnealingLR(
+            optimizer,
+            T_max=1000
+        )
 
-        batch_size = cfg["batch_size"]
+        loss_fn = nn.CrossEntropyLoss(ignore_index=0)
 
-        # ---------------- Training ----------------
+        # ====================================================
+        # TRAIN LOOP
+        # ====================================================
 
-        for epoch in range(cfg["epochs"]):
+        for epoch in range(self.config["epochs"]):
 
             model.train()
 
             epoch_loss = 0
-            batches = 0
 
-            for i in range(0, len(train_pairs), batch_size):
+            for src, tgt in train_loader:
 
-                batch = train_pairs[i:i+batch_size]
-
-                src_ids = []
-                tgt_ids = []
-                max_len = 0
-
-                for src, tgt in batch:
-
-                    src_ids.append(self.encode(src))
-                    tgt_ids.append(self.encode(tgt))
-
-                    max_len = max(
-                        max_len,
-                        len(src_ids[-1]),
-                        len(tgt_ids[-1])
-                    )
-
-                padded_src = np.zeros((len(batch), max_len), dtype=np.int64)
-                padded_tgt = np.zeros((len(batch), max_len), dtype=np.int64)
-
-                for j, (s, t) in enumerate(zip(src_ids, tgt_ids)):
-                    padded_src[j, :len(s)] = s
-                    padded_tgt[j, :len(t)] = t
-
-                src_tensor = torch.tensor(padded_src).to(self.device)
-                tgt_tensor = torch.tensor(padded_tgt).to(self.device)
-
-                outputs = model(src_tensor)
-                logits = outputs.logits if hasattr(outputs, "logits") else outputs
-
-                vocab = logits.size(-1)
-
-                loss = self.masked_loss(logits, tgt_tensor)
+                src = src.to(DEVICE)
+                tgt = tgt.to(DEVICE)
 
                 optimizer.zero_grad()
-                loss.backward()
+
+                with autocast():
+
+                    outputs = model(src)
+
+                    logits = outputs.logits if hasattr(outputs, "logits") else outputs
+
+                    loss = loss_fn(
+                        logits.view(-1, logits.size(-1)),
+                        tgt.view(-1)
+                    )
+
+                self.scaler.scale(loss).backward()
 
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
-                optimizer.step()
-                scheduler.step()
+                self.scaler.step(optimizer)
+                self.scaler.update()
 
                 epoch_loss += loss.item()
-                batches += 1
+
+            scheduler.step()
 
             logger.info(
-                f"Epoch {epoch+1} loss={epoch_loss/max(1,batches):.4f}"
+                f"Epoch {epoch+1} loss={epoch_loss/len(train_loader):.4f}"
             )
 
         logger.info("Training finished")
-
-        return True
-
 
 # ============================================================
 
 def main():
 
-    trainer = LocalNMTTrainer(
+    trainer = Trainer(
         model_size="small",
         tokenizer_name="BPE_32K",
         lang_pair="de-en"
     )
 
     trainer.train()
-
 
 if __name__ == "__main__":
     main()
